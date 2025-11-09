@@ -9,6 +9,25 @@ This guide will help you deploy the Chouette Debt Settler application to AWS wit
 - Domain name: `settlethechou.com` (registered with any registrar)
 - `jq` installed (for CloudFront script): `sudo apt-get install jq` or `brew install jq`
 
+### Using 1Password AWS Plugin
+
+If you use the 1Password plugin for AWS, use the wrapper script instead:
+
+```bash
+# For 1Password users - use this instead of the regular scripts
+./deploy-with-1password.sh s3           # Deploy to S3
+./deploy-with-1password.sh cloudfront   # Setup CloudFront
+./deploy-with-1password.sh update E123  # Update site
+```
+
+Or set the AWS_COMMAND environment variable:
+
+```bash
+export AWS_COMMAND="op plugin run -- aws"
+./deploy.sh
+./deploy-cloudfront.sh
+```
+
 ## Architecture
 
 The deployment uses:
