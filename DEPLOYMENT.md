@@ -224,6 +224,13 @@ For a single HTML file with minimal traffic: **~$0-2 per month**
 
 ## Troubleshooting
 
+### S3 Block Public Access Error
+If you see `AccessDenied: User is not authorized to perform: s3:PutBucketPolicy because public policies are prevented by the BlockPublicPolicy setting`:
+
+- The deployment script now automatically disables Block Public Access for the bucket
+- If you encounter this error, ensure your IAM user has the `s3:PutPublicAccessBlock` permission
+- Alternatively, manually disable it in the AWS Console: S3 → Bucket → Permissions → Block Public Access → Edit → Uncheck all boxes
+
 ### Certificate Validation Stuck
 - Ensure CNAME records are added correctly to your domain's DNS
 - Check the certificate status in ACM console
