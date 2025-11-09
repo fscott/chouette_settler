@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chouette Debt Settler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .player-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .player-row input {
+            margin-bottom: 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+
+        .btn-secondary {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #0b7dda;
+        }
+
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-danger:hover {
+            background-color: #da190b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .validation-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .validation-message.error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+
+        .validation-message.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #66bb6a;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .transaction-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .transaction-list li {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+
+        .transaction-points {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .transaction-currency {
+            color: #666;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+
+        .summary {
+            background: #e8f5e9;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: #2e7d32;
+        }
+
+        .stake-input {
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chouette Debt Settler</h1>
+    <p class="subtitle">Minimize transactions when settling backgammon chouette debts</p>
+
+    <div class="card">
+        <h2 style="margin-bottom: 15px;">Game Settings</h2>
+        <div class="form-group">
+            <label for="stake">Stake Value ($ per point)</label>
+            <input type="number" id="stake" class="stake-input" value="1" min="0" step="0.01" placeholder="Enter stake value">
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-bottom: 15px;">Players</h2>
+        <div id="players-container">
+            <div class="player-row">
+                <div>
+                    <label>Player Name</label>
+                    <input type="text" class="player-name" placeholder="Player A">
+                </div>
+                <div>
+                    <label>Net Points</label>
+                    <input type="number" class="player-points" placeholder="0" step="0.01">
+                </div>
+                <div>
+                    <button class="btn-danger remove-player" style="margin-top: 25px;">Remove</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-secondary" id="add-player">Add Player</button>
+            <button class="btn-primary" id="calculate">Calculate Settlement</button>
+        </div>
+
+        <div id="validation-message"></div>
+    </div>
+
+    <div class="card results" id="results">
+        <h2 style="margin-bottom: 15px;">Settlement Transactions</h2>
+        <div class="summary" id="summary"></div>
+        <ul class="transaction-list" id="transaction-list"></ul>
+    </div>
+
+    <script>
+        // Add player functionality
+        document.getElementById('add-player').addEventListener('click', function() {
+            const container = document.getElementById('players-container');
+            const playerRow = document.createElement('div');
+            playerRow.className = 'player-row';
+            playerRow.innerHTML = `
+                <div>
+                    <label>Player Name</label>
+                    <input type="text" class="player-name" placeholder="Player ${container.children.length + 1}">
+                </div>
+                <div>
+                    <label>Net Points</label>
+                    <input type="number" class="player-points" placeholder="0" step="0.01">
+                </div>
+                <div>
+                    <button class="btn-danger remove-player" style="margin-top: 25px;">Remove</button>
+                </div>
+            `;
+            container.appendChild(playerRow);
+            attachRemoveHandler(playerRow.querySelector('.remove-player'));
+        });
+
+        // Remove player functionality
+        function attachRemoveHandler(button) {
+            button.addEventListener('click', function() {
+                const container = document.getElementById('players-container');
+                if (container.children.length > 1) {
+                    this.closest('.player-row').remove();
+                } else {
+                    showValidation('You must have at least one player', 'error');
+                }
+            });
+        }
+
+        // Attach to initial remove button
+        document.querySelectorAll('.remove-player').forEach(button => {
+            attachRemoveHandler(button);
+        });
+
+        // Validation message display
+        function showValidation(message, type) {
+            const validationDiv = document.getElementById('validation-message');
+            validationDiv.innerHTML = `<div class="validation-message ${type}">${message}</div>`;
+        }
+
+        // Debt settlement algorithm
+        function calculateSettlement(players, stake) {
+            // Separate debtors and creditors
+            const debtors = players.filter(p => p.points < 0).map(p => ({
+                name: p.name,
+                amount: Math.abs(p.points)
+            })).sort((a, b) => b.amount - a.amount);
+
+            const creditors = players.filter(p => p.points > 0).map(p => ({
+                name: p.name,
+                amount: p.points
+            })).sort((a, b) => b.amount - a.amount);
+
+            const transactions = [];
+
+            // Greedy algorithm to minimize transactions
+            let i = 0, j = 0;
+            while (i < debtors.length && j < creditors.length) {
+                const debtor = debtors[i];
+                const creditor = creditors[j];
+
+                const settlementAmount = Math.min(debtor.amount, creditor.amount);
+
+                transactions.push({
+                    from: debtor.name,
+                    to: creditor.name,
+                    points: settlementAmount,
+                    currency: settlementAmount * stake
+                });
+
+                debtor.amount -= settlementAmount;
+                creditor.amount -= settlementAmount;
+
+                if (debtor.amount === 0) i++;
+                if (creditor.amount === 0) j++;
+            }
+
+            return transactions;
+        }
+
+        // Calculate button handler
+        document.getElementById('calculate').addEventListener('click', function() {
+            const playerNames = document.querySelectorAll('.player-name');
+            const playerPoints = document.querySelectorAll('.player-points');
+            const stake = parseFloat(document.getElementById('stake').value) || 1;
+
+            // Collect player data
+            const players = [];
+            let totalPoints = 0;
+            let hasError = false;
+
+            for (let i = 0; i < playerNames.length; i++) {
+                const name = playerNames[i].value.trim() || `Player ${i + 1}`;
+                const points = parseFloat(playerPoints[i].value);
+
+                if (isNaN(points)) {
+                    showValidation(`Please enter valid points for ${name}`, 'error');
+                    hasError = true;
+                    break;
+                }
+
+                players.push({ name, points });
+                totalPoints += points;
+            }
+
+            if (hasError) return;
+
+            // Validate that points balance to zero
+            if (Math.abs(totalPoints) > 0.001) { // Allow small floating point errors
+                showValidation(`Points must balance to zero. Current total: ${totalPoints.toFixed(2)}`, 'error');
+                return;
+            }
+
+            // Check if there are any transactions needed
+            const hasDebts = players.some(p => p.points !== 0);
+            if (!hasDebts) {
+                showValidation('All players are even - no settlements needed!', 'success');
+                document.getElementById('results').classList.remove('show');
+                return;
+            }
+
+            // Calculate settlements
+            const transactions = calculateSettlement(players, stake);
+
+            // Display results
+            showValidation('Settlement calculated successfully!', 'success');
+            displayResults(transactions);
+        });
+
+        function displayResults(transactions) {
+            const resultsDiv = document.getElementById('results');
+            const summaryDiv = document.getElementById('summary');
+            const transactionList = document.getElementById('transaction-list');
+
+            summaryDiv.textContent = `Total transactions: ${transactions.length}`;
+
+            transactionList.innerHTML = '';
+            transactions.forEach((t, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="transaction-points">${t.from}</span> pays
+                    <span class="transaction-points">${t.to}</span>:
+                    <span class="transaction-points">${t.points.toFixed(2)} points</span>
+                    <span class="transaction-currency">($${t.currency.toFixed(2)})</span>
+                `;
+                transactionList.appendChild(li);
+            });
+
+            resultsDiv.classList.add('show');
+        }
+    </script>
+</body>
+</html>
