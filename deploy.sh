@@ -56,6 +56,15 @@ eval "$AWS_CMD s3 website \"s3://${BUCKET_NAME}\" \
     --index-document index.html \
     --error-document index.html"
 
+echo ""
+echo "Step 4: Disabling Block Public Access for bucket..."
+eval "$AWS_CMD s3api put-public-access-block \
+    --bucket \"${BUCKET_NAME}\" \
+    --public-access-block-configuration \"BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false\""
+echo "✓ Block Public Access disabled"
+
+echo ""
+echo "Step 5: Setting bucket policy for public access..."
 # Create bucket policy
 cat > /tmp/bucket-policy.json <<EOF
 {
