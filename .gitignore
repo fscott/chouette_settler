@@ -1,0 +1,17 @@
+# Temporary files
+*.tmp
+/tmp/
+
+# AWS
+.aws/
+*.pem
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
