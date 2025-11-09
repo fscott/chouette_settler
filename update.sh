@@ -5,10 +5,6 @@
 
 set -e
 
-# Enable alias expansion for 1Password plugin support
-shopt -s expand_aliases
-source ~/.bashrc 2>/dev/null || source ~/.zshrc 2>/dev/null || true
-
 # Use AWS_COMMAND if set, otherwise use 'aws'
 AWS_CMD="${AWS_COMMAND:-aws}"
 
