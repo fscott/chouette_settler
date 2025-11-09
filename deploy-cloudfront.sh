@@ -5,6 +5,13 @@
 
 set -e
 
+# Enable alias expansion for 1Password plugin support
+shopt -s expand_aliases
+source ~/.bashrc 2>/dev/null || source ~/.zshrc 2>/dev/null || true
+
+# Use AWS_COMMAND if set, otherwise use 'aws'
+AWS_CMD="${AWS_COMMAND:-aws}"
+
 # Configuration
 DOMAIN="settlethechou.com"
 BUCKET_NAME="settlethechou.com"
@@ -17,7 +24,7 @@ echo ""
 
 # Get ACM certificate ARN
 echo "Looking for ACM certificate for ${DOMAIN}..."
-CERT_ARN=$(aws acm list-certificates --region us-east-1 --query "CertificateSummaryList[?DomainName=='${DOMAIN}'].CertificateArn" --output text)
+CERT_ARN=$($AWS_CMD acm list-certificates --region us-east-1 --query "CertificateSummaryList[?DomainName=='${DOMAIN}'].CertificateArn" --output text)
 
 if [ -z "$CERT_ARN" ]; then
     echo "Error: No ACM certificate found for ${DOMAIN}"
@@ -92,7 +99,7 @@ EOF
 
 echo ""
 echo "Creating CloudFront distribution..."
-DISTRIBUTION_OUTPUT=$(aws cloudfront create-distribution --distribution-config file:///tmp/cf-config.json)
+DISTRIBUTION_OUTPUT=$($AWS_CMD cloudfront create-distribution --distribution-config file:///tmp/cf-config.json)
 DISTRIBUTION_ID=$(echo "$DISTRIBUTION_OUTPUT" | jq -r '.Distribution.Id')
 DISTRIBUTION_DOMAIN=$(echo "$DISTRIBUTION_OUTPUT" | jq -r '.Distribution.DomainName')
 

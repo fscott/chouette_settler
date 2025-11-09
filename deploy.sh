@@ -5,6 +5,13 @@
 
 set -e
 
+# Enable alias expansion for 1Password plugin support
+shopt -s expand_aliases
+source ~/.bashrc 2>/dev/null || source ~/.zshrc 2>/dev/null || true
+
+# Use AWS_COMMAND if set, otherwise use 'aws'
+AWS_CMD="${AWS_COMMAND:-aws}"
+
 # Configuration
 DOMAIN="settlethechou.com"
 BUCKET_NAME="settlethechou.com"
@@ -21,14 +28,14 @@ echo "Region: ${REGION}"
 echo ""
 
 # Check if AWS CLI is configured
-if ! aws sts get-caller-identity &> /dev/null; then
+if ! $AWS_CMD sts get-caller-identity &> /dev/null; then
     echo "Error: AWS CLI is not configured. Please run 'aws configure' first."
     exit 1
 fi
 
 echo "Step 1: Creating S3 bucket..."
-if aws s3 ls "s3://${BUCKET_NAME}" 2>&1 | grep -q 'NoSuchBucket'; then
-    aws s3 mb "s3://${BUCKET_NAME}" --region "${REGION}"
+if $AWS_CMD s3 ls "s3://${BUCKET_NAME}" 2>&1 | grep -q 'NoSuchBucket'; then
+    $AWS_CMD s3 mb "s3://${BUCKET_NAME}" --region "${REGION}"
     echo "✓ Bucket created"
 else
     echo "✓ Bucket already exists"
@@ -36,7 +43,7 @@ fi
 
 echo ""
 echo "Step 2: Uploading files to S3..."
-aws s3 sync . "s3://${BUCKET_NAME}" \
+$AWS_CMD s3 sync . "s3://${BUCKET_NAME}" \
     --exclude "*" \
     --include "index.html" \
     --cache-control "max-age=300" \
@@ -45,7 +52,7 @@ echo "✓ Files uploaded"
 
 echo ""
 echo "Step 3: Configuring S3 bucket for website hosting..."
-aws s3 website "s3://${BUCKET_NAME}" \
+$AWS_CMD s3 website "s3://${BUCKET_NAME}" \
     --index-document index.html \
     --error-document index.html
 
@@ -65,7 +72,7 @@ cat > /tmp/bucket-policy.json <<EOF
 }
 EOF
 
-aws s3api put-bucket-policy \
+$AWS_CMD s3api put-bucket-policy \
     --bucket "${BUCKET_NAME}" \
     --policy file:///tmp/bucket-policy.json
 
