@@ -26,16 +26,16 @@ if [ -z "$DISTRIBUTION_ID" ]; then
 fi
 
 echo "Uploading index.html to S3..."
-$AWS_CMD s3 cp index.html "s3://${BUCKET_NAME}/" --cache-control "max-age=300"
+eval "$AWS_CMD s3 cp index.html \"s3://${BUCKET_NAME}/\" --cache-control \"max-age=300\""
 echo "✓ File uploaded"
 
 echo ""
 echo "Invalidating CloudFront cache..."
-INVALIDATION_ID=$($AWS_CMD cloudfront create-invalidation \
-    --distribution-id "${DISTRIBUTION_ID}" \
+INVALIDATION_ID=$(eval "$AWS_CMD cloudfront create-invalidation \
+    --distribution-id \"${DISTRIBUTION_ID}\" \
     --paths '/*' \
     --query 'Invalidation.Id' \
-    --output text)
+    --output text")
 
 echo "✓ Invalidation created: ${INVALIDATION_ID}"
 echo ""
