@@ -2,7 +2,8 @@
 
 # Wrapper script for 1Password AWS plugin users
 
-export AWS_COMMAND="op plugin run -- aws"
+# Use full path to op command
+export AWS_COMMAND="/opt/homebrew/bin/op plugin run -- aws"
 
 echo "Using 1Password AWS plugin..."
 echo ""
