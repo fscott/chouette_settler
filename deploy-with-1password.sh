@@ -20,12 +20,16 @@ case "$1" in
         shift
         ./update.sh "$@"
         ;;
+    "check-cert"|"cert")
+        ./check-certificate.sh
+        ;;
     *)
-        echo "Usage: $0 [s3|cloudfront|update] [args...]"
+        echo "Usage: $0 [s3|cloudfront|update|check-cert] [args...]"
         echo ""
         echo "Examples:"
         echo "  $0 s3              # Deploy to S3"
-        echo "  $0 cloudfront      # Setup CloudFront"
+        echo "  $0 check-cert      # Check certificate status and show validation records"
+        echo "  $0 cloudfront      # Setup CloudFront (after cert is validated)"
         echo "  $0 update E123...  # Update site"
         exit 1
         ;;
