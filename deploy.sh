@@ -5,6 +5,9 @@
 
 set -e
 
+# Use AWS_COMMAND if set, otherwise use 'aws'
+AWS_CMD="${AWS_COMMAND:-aws}"
+
 # Configuration
 DOMAIN="settlethechou.com"
 BUCKET_NAME="settlethechou.com"
@@ -21,14 +24,14 @@ echo "Region: ${REGION}"
 echo ""
 
 # Check if AWS CLI is configured
-if ! aws sts get-caller-identity &> /dev/null; then
+if ! eval "$AWS_CMD sts get-caller-identity" &> /dev/null; then
     echo "Error: AWS CLI is not configured. Please run 'aws configure' first."
     exit 1
 fi
 
 echo "Step 1: Creating S3 bucket..."
-if aws s3 ls "s3://${BUCKET_NAME}" 2>&1 | grep -q 'NoSuchBucket'; then
-    aws s3 mb "s3://${BUCKET_NAME}" --region "${REGION}"
+if eval "$AWS_CMD s3 ls \"s3://${BUCKET_NAME}\"" 2>&1 | grep -q 'NoSuchBucket'; then
+    eval "$AWS_CMD s3 mb \"s3://${BUCKET_NAME}\" --region \"${REGION}\""
     echo "✓ Bucket created"
 else
     echo "✓ Bucket already exists"
@@ -36,19 +39,28 @@ fi
 
 echo ""
 echo "Step 2: Uploading files to S3..."
-aws s3 sync . "s3://${BUCKET_NAME}" \
-    --exclude "*" \
-    --include "index.html" \
-    --cache-control "max-age=300" \
-    --region "${REGION}"
+eval "$AWS_CMD s3 sync . \"s3://${BUCKET_NAME}\" \
+    --exclude \"*\" \
+    --include \"index.html\" \
+    --cache-control \"max-age=300\" \
+    --region \"${REGION}\""
 echo "✓ Files uploaded"
 
 echo ""
 echo "Step 3: Configuring S3 bucket for website hosting..."
-aws s3 website "s3://${BUCKET_NAME}" \
+eval "$AWS_CMD s3 website \"s3://${BUCKET_NAME}\" \
     --index-document index.html \
-    --error-document index.html
+    --error-document index.html"
 
+echo ""
+echo "Step 4: Disabling Block Public Access for bucket..."
+eval "$AWS_CMD s3api put-public-access-block \
+    --bucket \"${BUCKET_NAME}\" \
+    --public-access-block-configuration \"BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false\""
+echo "✓ Block Public Access disabled"
+
+echo ""
+echo "Step 5: Setting bucket policy for public access..."
 # Create bucket policy
 cat > /tmp/bucket-policy.json <<EOF
 {
@@ -65,9 +77,9 @@ cat > /tmp/bucket-policy.json <<EOF
 }
 EOF
 
-aws s3api put-bucket-policy \
-    --bucket "${BUCKET_NAME}" \
-    --policy file:///tmp/bucket-policy.json
+eval "$AWS_CMD s3api put-bucket-policy \
+    --bucket \"${BUCKET_NAME}\" \
+    --policy file:///tmp/bucket-policy.json"
 
 echo "✓ Bucket configured for static website hosting"
 

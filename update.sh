@@ -5,6 +5,9 @@
 
 set -e
 
+# Use AWS_COMMAND if set, otherwise use 'aws'
+AWS_CMD="${AWS_COMMAND:-aws}"
+
 BUCKET_NAME="settlethechou.com"
 DISTRIBUTION_ID="${1}"
 
@@ -19,16 +22,16 @@ if [ -z "$DISTRIBUTION_ID" ]; then
 fi
 
 echo "Uploading index.html to S3..."
-aws s3 cp index.html "s3://${BUCKET_NAME}/" --cache-control "max-age=300"
+eval "$AWS_CMD s3 cp index.html \"s3://${BUCKET_NAME}/\" --cache-control \"max-age=300\""
 echo "✓ File uploaded"
 
 echo ""
 echo "Invalidating CloudFront cache..."
-INVALIDATION_ID=$(aws cloudfront create-invalidation \
-    --distribution-id "${DISTRIBUTION_ID}" \
+INVALIDATION_ID=$(eval "$AWS_CMD cloudfront create-invalidation \
+    --distribution-id \"${DISTRIBUTION_ID}\" \
     --paths '/*' \
     --query 'Invalidation.Id' \
-    --output text)
+    --output text")
 
 echo "✓ Invalidation created: ${INVALIDATION_ID}"
 echo ""

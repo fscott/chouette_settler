@@ -9,6 +9,25 @@ This guide will help you deploy the Chouette Debt Settler application to AWS wit
 - Domain name: `settlethechou.com` (registered with any registrar)
 - `jq` installed (for CloudFront script): `sudo apt-get install jq` or `brew install jq`
 
+### Using 1Password AWS Plugin
+
+If you use the 1Password plugin for AWS, use the wrapper script instead:
+
+```bash
+# For 1Password users - use this instead of the regular scripts
+./deploy-with-1password.sh s3           # Deploy to S3
+./deploy-with-1password.sh cloudfront   # Setup CloudFront
+./deploy-with-1password.sh update E123  # Update site
+```
+
+Or set the AWS_COMMAND environment variable:
+
+```bash
+export AWS_COMMAND="op plugin run -- aws"
+./deploy.sh
+./deploy-cloudfront.sh
+```
+
 ## Architecture
 
 The deployment uses:
@@ -204,6 +223,13 @@ For a single HTML file with minimal traffic: **~$0-2 per month**
 ---
 
 ## Troubleshooting
+
+### S3 Block Public Access Error
+If you see `AccessDenied: User is not authorized to perform: s3:PutBucketPolicy because public policies are prevented by the BlockPublicPolicy setting`:
+
+- The deployment script now automatically disables Block Public Access for the bucket
+- If you encounter this error, ensure your IAM user has the `s3:PutPublicAccessBlock` permission
+- Alternatively, manually disable it in the AWS Console: S3 → Bucket → Permissions → Block Public Access → Edit → Uncheck all boxes
 
 ### Certificate Validation Stuck
 - Ensure CNAME records are added correctly to your domain's DNS
